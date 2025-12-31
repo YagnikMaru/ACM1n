@@ -1,98 +1,108 @@
-# AutoJudge: Programming Problem Difficulty Predictor
+# 🚀 AutoJudge — Programming Problem Difficulty Predictor
 
-## Project Overview
-AutoJudge is a machine learning system that automatically predicts the difficulty of programming problems based on their textual descriptions. The system classifies problems as Easy, Medium, or Hard and predicts a continuous difficulty score between 0 and 10.
+AutoJudge is a machine learning–powered system that **automatically predicts the difficulty of programming problems** using only their textual descriptions.  
+It classifies problems as **Easy / Medium / Hard** and assigns a **continuous difficulty score between 0 and 10**, along with confidence estimates.
 
-## 🚀 Features
+---
+
+## 📌 Project Overview
+
+Online coding platforms typically assign difficulty levels using manual judgment and user feedback.  
+AutoJudge aims to **automate this process** by analyzing the **structure, language, and mathematical content** of programming problem statements.
+
+### 🎯 What AutoJudge Predicts
+- **Difficulty Class** → Easy / Medium / Hard  
+- **Difficulty Score** → Continuous value in **[0, 10]**  
+- **Prediction Confidence** → Model certainty for each output
+
+---
+
+## ✨ Key Features
 
 ### 🤖 Smart Difficulty Prediction
-Class Prediction: Classifies problems as Easy, Medium, or Hard
+- Multi-class classification (Easy / Medium / Hard)
+- Numerical difficulty scoring (0–10 scale)
+- Confidence estimation for predictions
 
-Score Prediction: Provides numerical score (0-10 scale)
-
-Confidence Scoring: Shows model confidence for each prediction
+---
 
 ### 🔍 Advanced Feature Analysis
-Algorithm Detection: Identifies 100+ algorithms (DP, Graphs, Trees, etc.)
+- **Algorithm Detection**  
+  Detects 100+ algorithmic patterns (DP, Graphs, Trees, Greedy, etc.)
 
-Mathematical Analysis: Detects math symbols, formulas, and complexity
+- **Mathematical Analysis**  
+  Counts symbols, formulas, and mathematical expressions
 
-Structural Analysis: Analyzes problem structure, constraints, examples
+- **Structural Analysis**  
+  Examines constraints, examples, and problem layout
 
-Text Complexity: Word count, sentence structure, readability metrics
+- **Text Complexity Metrics**  
+  Word count, sentence structure, and readability indicators
+
+---
 
 ### 🎯 Multi-Model Architecture
-Random Forest Classifier: For difficulty classification
+- **Random Forest Classifier** → Difficulty class
+- **Random Forest Regressor** → Difficulty score
+- **TF-IDF Vectorizer** → Text representation
+- **Ensemble-style feature design** for higher robustness
 
-Random Forest Regressor: For numerical scoring
+---
 
-TF-IDF Vectorizer: Text feature extraction
+### 🌐 User-Friendly Web Interface
+- Clean and modern UI
+- Real-time predictions
+- Detailed result breakdown
+- Sample problems for testing
+- Mobile-responsive design
 
-Ensemble Approach: Combines multiple models for accuracy
-
-### 🌐 User-Friendly Interface
-Clean, modern web interface
-
-Real-time predictions
-
-Detailed results breakdown
-
-Sample problems for testing
-
-Mobile-responsive design
+---
 
 ## 🏗️ System Architecture
 
-User Input → Text Processing → Feature Extraction → ML Prediction → Results Display
-    │              │                 │                 │              │
-    │         Clean text        Extract 24+     Classification  Visualize
-    │       Remove noise        features       & Regression    with insights
+User Input
+↓
+Text Cleaning & Normalization
+↓
+Feature Extraction (TF-IDF + Numeric Features)
+↓
+ML Models (Classification & Regression)
+↓
+Prediction + Confidence
+↓
+Web Visualization
 
 
-## 🔧 Technical Stack
-Backend: Flask (Python)
+---
 
-Frontend: HTML5, CSS3, JavaScript, Bootstrap
+## ⚙️ Step-by-Step Setup
 
-ML Framework: Scikit-learn, Pandas, NumPy
+### 🔹 1. Create Virtual Environment
 
-Text Processing: NLTK, Regex
-
-Visualization: Matplotlib, Seaborn
-
-## Step-by-Step Setup
-# Windows
+#### Windows
 python -m venv venv
 venv\Scripts\activate
 
-# macOS/Linux
+#### macOS / Linux
 python3 -m venv venv
 source venv/bin/activate
 
-# Install ML model dependencies
+### 2. Install ML Dependencies
 cd ml_model
 pip install -r requirements.txt
 
-# Install web app dependencies
+### 3. Install Web App Dependencies
 cd ../web_app
 pip install -r requirements.txt
 
-cd ml_model
+### 4. Train the Models
+cd ../ml_model
 python train.py
 
-This will:
-
-✅ Load/Create training data
-
-✅ Extract 24 advanced features
-
-✅ Train classification & regression models
-
-✅ Save models to saved_models/
-
-✅ Generate performance reports
-
-cd web_app
+### 5. Run the Web Application
+cd ../web_app
 python app.py
 
-http://localhost:5000
+## Open your browser at:
+
+👉 http://localhost:5000
