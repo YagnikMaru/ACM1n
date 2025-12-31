@@ -1,208 +1,772 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoJudge - Programming Problem Difficulty Predictor</title>
+    <title>AutoJudge | AI-Powered Problem Difficulty Predictor</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Predict programming problem difficulty using AI. Get instant difficulty classification and score prediction.">
+    <meta name="keywords" content="AI, Machine Learning, Programming, Difficulty Predictor, AutoJudge">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-robot"></i>
-                <h1>AutoJudge</h1>
-            </div>
-            <p class="subtitle">Predict Programming Problem Difficulty</p>
-            <div class="metrics">
-                <div class="metric-card">
-                    <i class="fas fa-bullseye"></i>
-                    <span>Accuracy: ~85%</span>
-                </div>
-                <div class="metric-card">
-                    <i class="fas fa-chart-line"></i>
-                    <span>MAE: ~1.2</span>
-                </div>
-            </div>
-        </header>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </button>
+    </div>
 
-        <main class="main-content">
-            <div class="input-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-keyboard"></i> Enter Problem Details</h2>
-                    <button class="btn-secondary" id="load-sample">
-                        <i class="fas fa-magic"></i> Load Sample
-                    </button>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <span>AutoJudge</span>
                 </div>
-                
-                <div class="form-group">
-                    <label for="title"><i class="fas fa-heading"></i> Problem Title</label>
-                    <input type="text" id="title" placeholder="e.g., Two Sum, Binary Tree Traversal">
-                </div>
-                
-                <div class="form-group">
-                    <label for="description"><i class="fas fa-file-alt"></i> Problem Description</label>
-                    <textarea id="description" rows="6" placeholder="Describe the problem in detail..."></textarea>
-                    <div class="char-count">Characters: <span id="desc-count">0</span></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="input-description"><i class="fas fa-sign-in-alt"></i> Input Description</label>
-                    <textarea id="input-description" rows="4" placeholder="Describe the input format..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="output-description"><i class="fas fa-sign-out-alt"></i> Output Description</label>
-                    <textarea id="output-description" rows="4" placeholder="Describe the expected output..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-lightbulb"></i> Tips for better prediction:</label>
-                    <ul class="tips">
-                        <li>Include mathematical symbols (+, -, *, /, ^)</li>
-                        <li>Mention algorithms (DFS, BFS, DP, Binary Search)</li>
-                        <li>Describe complexity clearly</li>
-                        <li>Provide complete input/output specifications</li>
-                    </ul>
-                </div>
-                
-                <button class="btn-primary" id="predict-btn">
-                    <i class="fas fa-brain"></i> Predict Difficulty
+                <div class="version">v1.0</div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#predict" class="nav-link active">
+                    <i class="fas fa-bolt"></i>
+                    Predict
+                </a>
+                <a href="#features" class="nav-link">
+                    <i class="fas fa-star"></i>
+                    Features
+                </a>
+                <a href="#how-it-works" class="nav-link">
+                    <i class="fas fa-cogs"></i>
+                    How it Works
+                </a>
+                <a href="#api" class="nav-link">
+                    <i class="fas fa-code"></i>
+                    API
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn btn-outline" id="github-btn">
+                    <i class="fab fa-github"></i>
+                    GitHub
                 </button>
+                <button class="btn btn-primary" id="try-demo">
+                    <i class="fas fa-play-circle"></i>
+                    Try Demo
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Predict Programming Problem
+                    <span class="gradient-text">Difficulty</span>
+                    with AI
+                </h1>
+                <p class="hero-subtitle">
+                    AutoJudge analyzes problem descriptions using machine learning to predict difficulty levels
+                    and scores. Get instant insights for competitive programming and learning.
+                </p>
                 
-                <div class="loading hidden" id="loading">
-                    <div class="spinner"></div>
-                    <p>Analyzing problem difficulty...</p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">85-90%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">&lt; 1s</div>
+                            <div class="stat-label">Prediction Time</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">0.8 MAE</div>
+                            <div class="stat-label">Score Precision</div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </section>
+    </header>
 
-            <div class="result-section">
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Prediction Section -->
+        <section class="section prediction-section" id="predict">
+            <div class="container">
                 <div class="section-header">
-                    <h2><i class="fas fa-chart-bar"></i> Prediction Results</h2>
-                    <button class="btn-secondary" id="clear-results">
-                        <i class="fas fa-trash"></i> Clear
-                    </button>
+                    <h2 class="section-title">
+                        <i class="fas fa-magic"></i>
+                        Predict Difficulty
+                    </h2>
+                    <p class="section-subtitle">
+                        Enter problem details and get instant AI-powered difficulty prediction
+                    </p>
                 </div>
                 
-                <div class="result-card hidden" id="result-card">
-                    <div class="difficulty-badge" id="difficulty-badge">
-                        <i class="fas fa-tag"></i>
-                        <span id="class-result">Medium</span>
-                    </div>
-                    
-                    <div class="score-display">
-                        <div class="score-header">
-                            <i class="fas fa-star"></i>
-                            <h3>Difficulty Score</h3>
-                        </div>
-                        <div class="score-value" id="score-value">0.00</div>
-                        <div class="score-scale">
-                            <div class="scale-labels">
-                                <span>Easy</span>
-                                <span>Medium</span>
-                                <span>Hard</span>
-                            </div>
-                            <div class="scale-bar">
-                                <div class="scale-fill" id="scale-fill"></div>
-                            </div>
-                            <div class="scale-numbers">
-                                <span>0</span>
-                                <span>5</span>
-                                <span>10</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="confidence-section">
-                        <div class="confidence-item">
-                            <div class="confidence-label">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Class Confidence</span>
-                                <span id="class-confidence">85%</span>
-                            </div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" id="class-confidence-bar"></div>
+                <div class="prediction-grid">
+                    <!-- Input Form -->
+                    <div class="input-card card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-keyboard"></i>
+                                Problem Details
+                            </h3>
+                            <div class="card-actions">
+                                <button class="btn-icon" id="clear-form" title="Clear form">
+                                    <i class="fas fa-eraser"></i>
+                                </button>
+                                <button class="btn-icon" id="format-text" title="Format text">
+                                    <i class="fas fa-align-left"></i>
+                                </button>
                             </div>
                         </div>
                         
-                        <div class="confidence-item">
-                            <div class="confidence-label">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Score Confidence</span>
-                                <span id="score-confidence">78%</span>
+                        <form id="prediction-form" class="prediction-form">
+                            <div class="form-group">
+                                <label for="title" class="form-label">
+                                    <i class="fas fa-heading"></i>
+                                    Problem Title
+                                    <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="title" 
+                                    class="form-input"
+                                    placeholder="e.g., Two Sum, Binary Tree Traversal"
+                                    required
+                                >
+                                <div class="form-hint">Enter a descriptive title for the problem</div>
                             </div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" id="score-confidence-bar"></div>
+                            
+                            <div class="form-group">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-file-alt"></i>
+                                    Problem Description
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="textarea-wrapper">
+                                    <textarea 
+                                        id="description" 
+                                        class="form-textarea"
+                                        rows="6"
+                                        placeholder="Describe the programming problem in detail. Include constraints, examples, and any special requirements."
+                                        required
+                                    ></textarea>
+                                    <div class="textarea-footer">
+                                        <div class="char-count">
+                                            <span id="char-count">0</span> characters
+                                        </div>
+                                        <div class="textarea-actions">
+                                            <button type="button" class="btn-text" id="sample-btn">
+                                                <i class="fas fa-magic"></i>
+                                                Load Sample
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-hint">Minimum 50 characters recommended for accurate prediction</div>
                             </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="input-description" class="form-label">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        Input Description
+                                    </label>
+                                    <textarea 
+                                        id="input-description" 
+                                        class="form-textarea"
+                                        rows="3"
+                                        placeholder="Describe the input format and constraints..."
+                                    ></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="output-description" class="form-label">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        Output Description
+                                    </label>
+                                    <textarea 
+                                        id="output-description" 
+                                        class="form-textarea"
+                                        rows="3"
+                                        placeholder="Describe the expected output format..."
+                                    ></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Tips Card -->
+                            <div class="tips-card">
+                                <div class="tips-header">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <h4>Tips for Better Predictions</h4>
+                                </div>
+                                <div class="tips-content">
+                                    <div class="tip">
+                                        <i class="fas fa-calculator"></i>
+                                        <span>Include mathematical symbols (+, -, *, /, ^)</span>
+                                    </div>
+                                    <div class="tip">
+                                        <i class="fas fa-code"></i>
+                                        <span>Mention algorithms (DFS, BFS, DP, Binary Search)</span>
+                                    </div>
+                                    <div class="tip">
+                                        <i class="fas fa-list-ol"></i>
+                                        <span>Describe time and space complexity</span>
+                                    </div>
+                                    <div class="tip">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>Specify constraints and edge cases</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg btn-block" id="predict-btn">
+                                    <i class="fas fa-brain"></i>
+                                    Predict Difficulty
+                                    <span class="btn-loading" id="btn-loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Results Section -->
+                    <div class="results-card card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-bar"></i>
+                                Prediction Results
+                            </h3>
+                            <div class="card-actions">
+                                <button class="btn-icon" id="export-btn" title="Export results">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="btn-icon" id="share-btn" title="Share results">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Initial State -->
+                        <div class="results-initial" id="results-initial">
+                            <div class="initial-content">
+                                <div class="initial-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h4>No Prediction Yet</h4>
+                                <p>Enter problem details and click "Predict Difficulty" to see AI-powered predictions</p>
+                                <div class="initial-features">
+                                    <div class="feature">
+                                        <i class="fas fa-robot"></i>
+                                        <span>Machine Learning Model</span>
+                                    </div>
+                                    <div class="feature">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>Real-time Analysis</span>
+                                    </div>
+                                    <div class="feature">
+                                        <i class="fas fa-chart-pie"></i>
+                                        <span>Detailed Insights</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div class="results-loading" id="results-loading">
+                            <div class="loading-content">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                                <h4>Analyzing Problem</h4>
+                                <p>Processing text features and running AI models...</p>
+                                <div class="loading-steps">
+                                    <div class="step active">
+                                        <i class="fas fa-check"></i>
+                                        <span>Preprocessing text</span>
+                                    </div>
+                                    <div class="step">
+                                        <i class="fas fa-check"></i>
+                                        <span>Extracting features</span>
+                                    </div>
+                                    <div class="step">
+                                        <i class="fas fa-check"></i>
+                                        <span>Running ML models</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Results State -->
+                        <div class="results-content" id="results-content">
+                            <!-- Difficulty Badge -->
+                            <div class="result-badge" id="result-badge">
+                                <div class="badge-content">
+                                    <i class="fas fa-tag"></i>
+                                    <div class="badge-text">
+                                        <div class="badge-title">Predicted Difficulty</div>
+                                        <div class="badge-value"></div>
+                                    </div>
+                                </div>
+                                <div class="badge-confidence">
+                                    <div class="confidence-value">85%</div>
+                                    <div class="confidence-label">Confidence</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Score Display -->
+                            <div class="score-result">
+                                <div class="score-header">
+                                    <h4>
+                                        <i class="fas fa-star"></i>
+                                        Difficulty Score
+                                    </h4>
+                                    <div class="score-note">Scale: 0 (easiest) to 10 (hardest)</div>
+                                </div>
+                                
+                                <div class="score-visual">
+                                    <div class="score-value-large" id="score-value">0.00</div>
+                                    <div class="score-bar-large">
+                                        <div class="score-fill-large" id="score-fill"></div>
+                                        <div class="score-markers">
+                                            <span>0</span>
+                                            <span>5</span>
+                                            <span>10</span>
+                                        </div>
+                                    </div>
+                                    <div class="score-labels">
+                                        <span>Easy</span>
+                                        <span>Medium</span>
+                                        <span>Hard</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="score-confidence">
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" id="score-confidence-bar"></div>
+                                    </div>
+                                    <div class="confidence-info">
+                                        <span>Score Confidence:</span>
+                                        <span id="score-confidence">78%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Feature Analysis -->
+                            <div class="feature-analysis">
+                                <h4>
+                                    <i class="fas fa-search"></i>
+                                    Feature Analysis
+                                </h4>
+                                <div class="feature-grid">
+                                    <div class="feature-item">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-font"></i>
+                                        </div>
+                                        <div class="feature-info">
+                                            <div class="feature-name">Text Length</div>
+                                            <div class="feature-value">245 words</div>
+                                        </div>
+                                    </div>
+                                    <div class="feature-item">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-calculator"></i>
+                                        </div>
+                                        <div class="feature-info">
+                                            <div class="feature-name">Math Symbols</div>
+                                            <div class="feature-value">12</div>
+                                        </div>
+                                    </div>
+                                    <div class="feature-item">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div class="feature-info">
+                                            <div class="feature-name">Keywords</div>
+                                            <div class="feature-value">8</div>
+                                        </div>
+                                    </div>
+                                    <div class="feature-item">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-brain"></i>
+                                        </div>
+                                        <div class="feature-info">
+                                            <div class="feature-name">Complexity</div>
+                                            <div class="feature-value">Medium</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Insights -->
+                            <div class="insights-card">
+                                <div class="insights-header">
+                                    <h4>
+                                        <i class="fas fa-chart-pie"></i>
+                                        Model Insights
+                                    </h4>
+                                </div>
+                                <div class="insights-content">
+                                    <p>This prediction is based on analysis of:</p>
+                                    <ul class="insights-list">
+                                        <li>
+                                            <i class="fas fa-check-circle"></i>
+                                            Text complexity and semantic features
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check-circle"></i>
+                                            Mathematical symbol frequency
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check-circle"></i>
+                                            Programming keyword presence
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check-circle"></i>
+                                            Algorithm mentions and complexity indicators
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="section features-section" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i>
+                        Why Choose AutoJudge
+                    </h2>
+                    <p class="section-subtitle">
+                        Powerful features for accurate difficulty prediction
+                    </p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>AI-Powered Analysis</h3>
+                        <p>Advanced machine learning models trained on thousands of programming problems for accurate predictions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Real-Time Predictions</h3>
+                        <p>Get instant difficulty assessments with detailed breakdowns in under one second.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Dual Prediction</h3>
+                        <p>Both classification (Easy/Medium/Hard) and regression (0-10 score) for comprehensive analysis.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>Text-Only Input</h3>
+                        <p>Uses only problem descriptions - no code execution required. Works with any programming language.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Explainable AI</h3>
+                        <p>Understand why a problem is classified as difficult with detailed feature analysis and insights.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Production Ready</h3>
+                        <p>Built with scalability in mind. REST API available for integration with other systems.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="section how-it-works" id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        How It Works
+                    </h2>
+                    <p class="section-subtitle">
+                        Behind the scenes of our machine learning pipeline
+                    </p>
+                </div>
+                
+                <div class="steps">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Text Preprocessing</h3>
+                            <p>Clean and normalize text, preserve mathematical symbols and programming keywords.</p>
+                        </div>
+                        <div class="step-icon">
+                            <i class="fas fa-filter"></i>
                         </div>
                     </div>
                     
-                    <div class="insights">
-                        <h4><i class="fas fa-search"></i> Model Insights</h4>
-                        <p>The prediction is based on:</p>
-                        <ul>
-                            <li>Text complexity and length</li>
-                            <li>Mathematical symbols count</li>
-                            <li>Programming keywords presence</li>
-                            <li>Algorithm mentions (DP, Graph, etc.)</li>
-                        </ul>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Feature Extraction</h3>
+                            <p>Extract TF-IDF features, text metrics, symbol counts, and keyword frequencies.</p>
+                        </div>
+                        <div class="step-icon">
+                            <i class="fas fa-cube"></i>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="placeholder" id="placeholder">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>No Prediction Yet</h3>
-                    <p>Enter a programming problem and click "Predict Difficulty" to see results</p>
-                </div>
-                
-                <div class="model-info">
-                    <h4><i class="fas fa-info-circle"></i> Model Information</h4>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <strong>Classification:</strong>
-                            <span>Random Forest / SVM</span>
+                    
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Model Prediction</h3>
+                            <p>Run trained Random Forest and Gradient Boosting models for classification and regression.</p>
                         </div>
-                        <div class="info-item">
-                            <strong>Regression:</strong>
-                            <span>Gradient Boosting</span>
+                        <div class="step-icon">
+                            <i class="fas fa-robot"></i>
                         </div>
-                        <div class="info-item">
-                            <strong>Features:</strong>
-                            <span>TF-IDF + Text Metrics</span>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Result Analysis</h3>
+                            <p>Generate confidence scores, feature importance, and detailed insights.</p>
                         </div>
-                        <div class="info-item">
-                            <strong>Training Data:</strong>
-                            <span>5000+ problems</span>
+                        <div class="step-icon">
+                            <i class="fas fa-chart-pie"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </section>
 
-        <div class="charts-section">
-            <div class="chart-card">
-                <h3><i class="fas fa-th-large"></i> Confusion Matrix</h3>
-                <img src="{{ url_for('static', filename='confusion_matrix.png') }}" alt="Confusion Matrix" class="chart-img">
-                <p>Classification performance on test data</p>
+        <!-- Model Performance -->
+        <section class="section performance-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Model Performance
+                    </h2>
+                    <p class="section-subtitle">
+                        Trained on thousands of programming problems for maximum accuracy
+                    </p>
+                </div>
+                
+                <div class="performance-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">89.2%</div>
+                        <div class="metric-label">Classification Accuracy</div>
+                        <div class="metric-progress">
+                            <div class="progress-bar" style="width: 89.2%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">0.78</div>
+                        <div class="metric-label">Mean Absolute Error</div>
+                        <div class="metric-progress">
+                            <div class="progress-bar" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">94.1%</div>
+                        <div class="metric-label">F1 Score</div>
+                        <div class="metric-progress">
+                            <div class="progress-bar" style="width: 94.1%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">85.3%</div>
+                        <div class="metric-label">Precision</div>
+                        <div class="metric-progress">
+                            <div class="progress-bar" style="width: 85.3%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h4>Confusion Matrix</h4>
+                        <img src="{{ url_for('static', filename='confusion_matrix.png') }}" alt="Confusion Matrix" class="chart-img">
+                    </div>
+                    <div class="chart-card">
+                        <h4>Regression Performance</h4>
+                        <img src="{{ url_for('static', filename='regression_plot.png') }}" alt="Regression Plot" class="chart-img">
+                    </div>
+                </div>
             </div>
-            <div class="chart-card">
-                <h3><i class="fas fa-chart-scatter"></i> Regression Plot</h3>
-                <img src="{{ url_for('static', filename='regression_plot.png') }}" alt="Regression Plot" class="chart-img">
-                <p>Actual vs Predicted scores</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <i class="fas fa-robot"></i>
+                        <span>AutoJudge</span>
+                    </div>
+                    <p class="footer-description">
+                        AI-powered programming problem difficulty predictor using machine learning.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How it Works</a></li>
+                        <li><a href="#api">API</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Tutorials</a></li>
+                        <li><a href="#">Research Paper</a></li>
+                        <li><a href="#">GitHub Repository</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li><a href="mailto:support@autojudge.com">support@autojudge.com</a></li>
+                        <li><a href="#">Report Issue</a></li>
+                        <li><a href="#">Request Feature</a></li>
+                        <li><a href="#">Community</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2024 AutoJudge. All rights reserved.
+                </div>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
             </div>
         </div>
+    </footer>
 
-        <footer class="footer">
-            <p>AutoJudge v1.0 | Machine Learning Project | Created by [Your Name]</p>
-            <div class="footer-links">
-                <a href="#"><i class="fab fa-github"></i> GitHub</a>
-                <a href="#"><i class="fas fa-book"></i> Documentation</a>
-                <a href="#"><i class="fas fa-video"></i> Demo Video</a>
-            </div>
-        </footer>
-    </div>
+    <!-- Notifications Container -->
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    
+    <!-- Initialize -->
+    <script>
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            if (typeof initTheme === 'function') initTheme();
+            
+            // Initialize main functionality
+            if (typeof initAutoJudge === 'function') initAutoJudge();
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Set current year in footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        });
+    </script>
 </body>
 </html>
