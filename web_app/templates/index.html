@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoJudge - Programming Problem Difficulty Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>AutoJudge</h1>
+            </div>
+            <p class="subtitle">Predict Programming Problem Difficulty</p>
+            <div class="metrics">
+                <div class="metric-card">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Accuracy: ~85%</span>
+                </div>
+                <div class="metric-card">
+                    <i class="fas fa-chart-line"></i>
+                    <span>MAE: ~1.2</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-keyboard"></i> Enter Problem Details</h2>
+                    <button class="btn-secondary" id="load-sample">
+                        <i class="fas fa-magic"></i> Load Sample
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="title"><i class="fas fa-heading"></i> Problem Title</label>
+                    <input type="text" id="title" placeholder="e.g., Two Sum, Binary Tree Traversal">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description"><i class="fas fa-file-alt"></i> Problem Description</label>
+                    <textarea id="description" rows="6" placeholder="Describe the problem in detail..."></textarea>
+                    <div class="char-count">Characters: <span id="desc-count">0</span></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="input-description"><i class="fas fa-sign-in-alt"></i> Input Description</label>
+                    <textarea id="input-description" rows="4" placeholder="Describe the input format..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="output-description"><i class="fas fa-sign-out-alt"></i> Output Description</label>
+                    <textarea id="output-description" rows="4" placeholder="Describe the expected output..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-lightbulb"></i> Tips for better prediction:</label>
+                    <ul class="tips">
+                        <li>Include mathematical symbols (+, -, *, /, ^)</li>
+                        <li>Mention algorithms (DFS, BFS, DP, Binary Search)</li>
+                        <li>Describe complexity clearly</li>
+                        <li>Provide complete input/output specifications</li>
+                    </ul>
+                </div>
+                
+                <button class="btn-primary" id="predict-btn">
+                    <i class="fas fa-brain"></i> Predict Difficulty
+                </button>
+                
+                <div class="loading hidden" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing problem difficulty...</p>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> Prediction Results</h2>
+                    <button class="btn-secondary" id="clear-results">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+                
+                <div class="result-card hidden" id="result-card">
+                    <div class="difficulty-badge" id="difficulty-badge">
+                        <i class="fas fa-tag"></i>
+                        <span id="class-result">Medium</span>
+                    </div>
+                    
+                    <div class="score-display">
+                        <div class="score-header">
+                            <i class="fas fa-star"></i>
+                            <h3>Difficulty Score</h3>
+                        </div>
+                        <div class="score-value" id="score-value">0.00</div>
+                        <div class="score-scale">
+                            <div class="scale-labels">
+                                <span>Easy</span>
+                                <span>Medium</span>
+                                <span>Hard</span>
+                            </div>
+                            <div class="scale-bar">
+                                <div class="scale-fill" id="scale-fill"></div>
+                            </div>
+                            <div class="scale-numbers">
+                                <span>0</span>
+                                <span>5</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="confidence-section">
+                        <div class="confidence-item">
+                            <div class="confidence-label">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Class Confidence</span>
+                                <span id="class-confidence">85%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="class-confidence-bar"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="confidence-item">
+                            <div class="confidence-label">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Score Confidence</span>
+                                <span id="score-confidence">78%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="score-confidence-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insights">
+                        <h4><i class="fas fa-search"></i> Model Insights</h4>
+                        <p>The prediction is based on:</p>
+                        <ul>
+                            <li>Text complexity and length</li>
+                            <li>Mathematical symbols count</li>
+                            <li>Programming keywords presence</li>
+                            <li>Algorithm mentions (DP, Graph, etc.)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="placeholder" id="placeholder">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>No Prediction Yet</h3>
+                    <p>Enter a programming problem and click "Predict Difficulty" to see results</p>
+                </div>
+                
+                <div class="model-info">
+                    <h4><i class="fas fa-info-circle"></i> Model Information</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Classification:</strong>
+                            <span>Random Forest / SVM</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Regression:</strong>
+                            <span>Gradient Boosting</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Features:</strong>
+                            <span>TF-IDF + Text Metrics</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Training Data:</strong>
+                            <span>5000+ problems</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3><i class="fas fa-th-large"></i> Confusion Matrix</h3>
+                <img src="{{ url_for('static', filename='confusion_matrix.png') }}" alt="Confusion Matrix" class="chart-img">
+                <p>Classification performance on test data</p>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-scatter"></i> Regression Plot</h3>
+                <img src="{{ url_for('static', filename='regression_plot.png') }}" alt="Regression Plot" class="chart-img">
+                <p>Actual vs Predicted scores</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>AutoJudge v1.0 | Machine Learning Project | Created by [Your Name]</p>
+            <div class="footer-links">
+                <a href="#"><i class="fab fa-github"></i> GitHub</a>
+                <a href="#"><i class="fas fa-book"></i> Documentation</a>
+                <a href="#"><i class="fas fa-video"></i> Demo Video</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

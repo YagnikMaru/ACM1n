@@ -1,0 +1,47 @@
+# ----------------------
+# Python cache & compiled files
+# ----------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ----------------------
+# Virtual environments
+# ----------------------
+venv/
+.env/
+.env*/
+.venv/
+
+# ----------------------
+# OS / Editor files
+# ----------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ----------------------
+# Jupyter / logs
+# ----------------------
+.ipynb_checkpoints/
+*.log
+
+# ----------------------
+# Trained ML models (generated)
+# ----------------------
+ml_model/saved_models/
+*.pkl
+
+# ----------------------
+# Dataset (optional)
+# ----------------------
+# Uncomment if dataset is large or private
+# data/dataset.jsonl
+
+# ----------------------
+# Web generated assets (optional)
+# ----------------------
+web_app/static/confusion_matrix.png
+web_app/static/regression_plot.png
