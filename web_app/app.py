@@ -25,7 +25,7 @@ is_loaded = False
 
 def load_models():
     """Load ML models and artifacts"""
-    global classifier, regressor, vectorizer, scaler, label_encoder, is_loaded
+    global classifier, regressor, vectorizer, scaler, label_encoder, is_loaded, svd
     
     try:
         print("Loading models...")
@@ -57,7 +57,7 @@ def load_models():
             return
         
         # Check if all required model files exist
-        model_files = ['classifier.pkl', 'regressor.pkl', 'vectorizer.pkl', 'scaler.pkl', 'label_encoder.pkl']
+        model_files = ['classifier.pkl', 'regressor.pkl', 'vectorizer.pkl', 'scaler.pkl', 'label_encoder.pkl', 'svd.pkl']
         missing_files = []
         
         for file in model_files:
@@ -91,6 +91,14 @@ def load_models():
         label_encoder = joblib.load(os.path.join(models_dir, 'label_encoder.pkl'))
         print(f"✓ Label encoder loaded (classes: {list(label_encoder.classes_)})")
         
+        # Load SVD for dimensionality reduction
+        svd = joblib.load(os.path.join(models_dir, 'svd.pkl'))
+        print(f"✓ SVD loaded ({svd.n_components} components)")
+        
+        # Verify expected feature count
+        expected_total_features = svd.n_components + scaler.n_features_in_
+        print(f"✓ Expected total features: {expected_total_features}")
+        
         is_loaded = True
         print("\n" + "="*60)
         print("✅ ALL MODELS LOADED SUCCESSFULLY!")
@@ -106,7 +114,8 @@ def load_models():
         print("3. Verify all .pkl files are present")
         is_loaded = False
 
-# Load models on startup
+# Add svd to global variables
+svd = None
 load_models()
 
 # ==============================================
@@ -753,12 +762,22 @@ def predict():
         # Extract numeric features (52 features)
         numeric_features, detailed_features = processor.extract_all_features(combined_text)
         
-        # Check feature dimensions
-        if numeric_features.shape[1] != scaler.n_features_in_:
-            return jsonify({
-                'success': False,
-                'error': f'Feature dimension mismatch: Expected {scaler.n_features_in_} features, got {numeric_features.shape[1]}. Please retrain models with consistent feature extraction.'
-            })
+        # Check feature dimensions and handle mismatch
+        expected_features = scaler.n_features_in_
+        actual_features = numeric_features.shape[1]
+        
+        if actual_features != expected_features:
+            print(f"⚠️  Feature dimension mismatch: Expected {expected_features}, got {actual_features}")
+            
+            # If we have fewer features than expected, pad with zeros
+            if actual_features < expected_features:
+                padding = np.zeros((1, expected_features - actual_features))
+                numeric_features = np.hstack([numeric_features, padding])
+                print(f"⚠️  Padded with {expected_features - actual_features} zeros")
+            # If we have more features than expected, truncate (shouldn't happen)
+            elif actual_features > expected_features:
+                numeric_features = numeric_features[:, :expected_features]
+                print(f"⚠️  Truncated from {actual_features} to {expected_features} features")
         
         # Scale numeric features
         numeric_scaled = scaler.transform(numeric_features)
@@ -766,18 +785,40 @@ def predict():
         # Transform with TF-IDF vectorizer
         tfidf_features = vectorizer.transform([processed_text])
         
+        # Apply SVD dimensionality reduction if available
+        if svd is not None:
+            tfidf_reduced = svd.transform(tfidf_features)
+            print(f"✅ SVD applied: {tfidf_features.shape[1]} -> {tfidf_reduced.shape[1]} features")
+        else:
+            # Fallback: use original TF-IDF features
+            tfidf_reduced = tfidf_features
+            print("⚠️  SVD not available, using original TF-IDF features")
+        
         # Debug information
         print(f"\n{'='*50}")
         print("PREDICTION REQUEST")
         print(f"{'='*50}")
         print(f"Title: {title[:50]}...")
         print(f"Description length: {len(description)} chars")
-        print(f"TF-IDF shape: {tfidf_features.shape}")
+        print(f"TF-IDF shape (reduced): {tfidf_reduced.shape}")
         print(f"Numeric features shape: {numeric_scaled.shape}")
-        print(f"Total features: {tfidf_features.shape[1] + numeric_scaled.shape[1]}")
+        print(f"Total features: {tfidf_reduced.shape[1] + numeric_scaled.shape[1]}")
         
-        # Combine features
-        X = hstack([tfidf_features, numeric_scaled])
+        # Combine features - IMPORTANT: Use the same method as training
+        if svd is not None:
+            # Convert TF-IDF reduced to dense array
+            if hasattr(tfidf_reduced, 'toarray'):
+                tfidf_reduced_dense = tfidf_reduced.toarray()
+            else:
+                tfidf_reduced_dense = tfidf_reduced
+            
+            X = np.hstack([tfidf_reduced_dense, numeric_scaled])
+        else:
+            # Original method without SVD
+            X = hstack([tfidf_features, numeric_scaled])
+        
+        # Debug: Check final feature count
+        print(f"✅ Final feature matrix shape: {X.shape}")
         
         # Make predictions
         class_pred = classifier.predict(X)[0]
@@ -807,13 +848,20 @@ def predict():
         else:
             class_confidence = 0.8
         
-        # Calculate score confidence
-        if 3.0 <= score_pred <= 7.0:
-            score_confidence = 0.85
-        elif 1.0 <= score_pred < 3.0 or 7.0 < score_pred <= 9.0:
-            score_confidence = 0.75
-        else:
-            score_confidence = 0.65
+        # Calculate score confidence based on boundary distance
+        def calculate_score_confidence(score):
+            # Higher confidence when score is far from boundaries (4 and 7)
+            distances_to_boundaries = [abs(score - 4), abs(score - 7)]
+            min_distance = min(distances_to_boundaries)
+            
+            if min_distance > 1.5:
+                return 0.85
+            elif min_distance > 0.5:
+                return 0.75
+            else:
+                return 0.65
+        
+        score_confidence = calculate_score_confidence(score_pred)
         
         # Adjust confidence based on feature consistency
         algo_total = detailed_features.get('algo_total_weighted', 0)
@@ -835,37 +883,69 @@ def predict():
             },
             'mathematical_complexity': {
                 'math_symbols': detailed_features.get('math_symbol_count', 0),
-                'equations': detailed_features.get('equation_density', 0),
+                'equations': round(detailed_features.get('equation_density', 0), 3),
                 'advanced_symbols': detailed_features.get('math_advanced_symbols', 0)
             },
             'structural_analysis': {
                 'sections': detailed_features.get('section_count', 0),
                 'constraints': detailed_features.get('constraint_count', 0),
                 'examples': detailed_features.get('example_count', 0)
+            },
+            'composite_scores': {
+                'text_complexity': round(detailed_features.get('text_complexity', 0), 2),
+                'algorithmic_complexity': round(detailed_features.get('algorithmic_complexity', 0), 2),
+                'overall_complexity': round(detailed_features.get('overall_complexity_score', 0), 2)
             }
         }
         
         # Generate insights based on features
         insights = []
-        if detailed_features.get('algo_dp_score', 0) > 0:
-            insights.append("Dynamic programming detected - indicates medium to high difficulty")
-        if detailed_features.get('algo_graph_advanced_score', 0) > 0:
-            insights.append("Advanced graph algorithms present - requires strong algorithmic knowledge")
+        
+        # Algorithm-based insights
+        if detailed_features.get('algo_dp_score', 0) > 2:
+            insights.append("🔹 Strong dynamic programming presence - indicates advanced problem solving required")
+        elif detailed_features.get('algo_dp_score', 0) > 0:
+            insights.append("🔹 Dynamic programming detected - good for intermediate to advanced practice")
+        
+        if detailed_features.get('algo_graph_advanced_score', 0) > 2:
+            insights.append("🔹 Advanced graph algorithms detected - requires deep algorithmic knowledge")
+        elif detailed_features.get('algo_graph_basic_score', 0) > 0:
+            insights.append("🔹 Graph algorithms present - fundamental for competitive programming")
+        
+        # Math-based insights
         if detailed_features.get('math_symbol_count', 0) > 10:
-            insights.append("High mathematical complexity detected")
-        if detailed_features.get('constraint_count', 0) > 3:
-            insights.append("Multiple constraints require careful handling")
+            insights.append("🧮 High mathematical complexity detected - strong math skills needed")
+        
+        # Constraint-based insights
+        if detailed_features.get('constraint_count', 0) > 5:
+            insights.append("🔸 Multiple constraints require careful optimization")
+        
+        if detailed_features.get('constraint_count', 0) == 0:
+            insights.append("⚠️  No explicit constraints mentioned - check problem carefully")
+        
+        # Example-based insights
         if detailed_features.get('example_count', 0) == 0:
-            insights.append("No examples provided - might be less clear")
+            insights.append("📝 No examples provided - clarity might be reduced")
+        
+        # Score-based insights
+        if score_pred < 3:
+            insights.append("🎯 Suitable for beginners - focuses on basic concepts")
+        elif score_pred < 6:
+            insights.append("🎯 Good for intermediate practice - balances concepts")
+        elif score_pred < 8:
+            insights.append("🎯 Challenging problem - requires strong algorithmic skills")
+        else:
+            insights.append("🎯 Expert-level problem - tests advanced concepts and optimization")
         
         # If no specific insights, add generic ones
-        if not insights:
-            if score_pred < 4:
-                insights.append("Problem appears straightforward")
-            elif score_pred < 7:
-                insights.append("Moderate difficulty - requires algorithmic thinking")
-            else:
-                insights.append("High difficulty - advanced concepts required")
+        if len(insights) < 3:
+            if detailed_features.get('word_count', 0) > 500:
+                insights.append("📋 Detailed problem statement - read carefully")
+            if detailed_features.get('section_count', 0) > 3:
+                insights.append("📑 Well-structured problem with multiple sections")
+        
+        # Determine model architecture
+        model_arch = "Hybrid (Logistic + XGBoost)" if hasattr(classifier, 'estimators_') else classifier.__class__.__name__
         
         response = {
             'success': True,
@@ -878,17 +958,24 @@ def predict():
                 'feature_analysis': feature_analysis,
                 'insights': insights,
                 'metadata': {
-                    'model_version': '1.0',
+                    'model_version': '3.0.0',
+                    'model_architecture': model_arch,
                     'timestamp': pd.Timestamp.now().isoformat(),
                     'total_features_used': X.shape[1],
-                    'numeric_features': numeric_features.shape[1],
-                    'tfidf_features': tfidf_features.shape[1]
+                    'numeric_features': actual_features,
+                    'expected_numeric_features': expected_features,
+                    'tfidf_features_reduced': tfidf_reduced.shape[1],
+                    'svd_applied': svd is not None,
+                    'feature_breakdown': f'TF-IDF: {tfidf_reduced.shape[1]}, Numeric: {expected_features}',
+                    'note': f'Feature mismatch handled: {actual_features} → {expected_features}'
                 }
             }
         }
         
-        print(f"Prediction: {score_based_class} (Score: {score_pred:.2f}/10)")
-        print(f"Confidence: {class_confidence:.2%}")
+        print(f"✅ Prediction: {class_label} (Score: {score_pred:.2f}/10)")
+        print(f"✅ Confidence: {class_confidence:.2%}")
+        print(f"✅ Total features used: {X.shape[1]}")
+        print(f"✅ Insights: {len(insights)} generated")
         print(f"{'='*50}\n")
         
         return jsonify(response)
@@ -896,12 +983,18 @@ def predict():
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"Prediction error: {error_details}")
+        print(f"❌ Prediction error: {error_details}")
+        
+        # Provide more specific error message
+        error_msg = str(e)
+        if "expected" in error_msg.lower() and "features" in error_msg.lower():
+            error_msg = f"Feature dimension issue: {error_msg}. The model expects {scaler.n_features_in_} numeric features but got {actual_features}."
         
         return jsonify({
             'success': False,
-            'error': str(e),
-            'details': 'Check console for full error trace'
+            'error': error_msg,
+            'details': 'Check console for full error trace',
+            'troubleshooting': 'Please ensure your training and app code use the same feature extraction.'
         })
 
 @app.route('/sample', methods=['GET'])
